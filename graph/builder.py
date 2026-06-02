@@ -66,15 +66,15 @@ async def synthesizer_node(state: DebateState) -> dict:
         "messages": [AIMessage(content=response.content)]
     }
 
-def where_to_go(state: DebateState) -> str:
+async def where_to_go(state: DebateState) -> list[str]:
     last_message = state['messages'][-1]
     decision_track = last_message.content.strip()
 
     if decision_track == 'CODE':
-        return "technical_track"
+        return ["architect", "clean_code", "mathematician", "edge_case"]
     elif decision_track == 'ACADEMIC':
-        return "academic_track"
-    return "end_track"
+        return ["scoping", "rhetoric", "bias"]
+    return [END]
 
 workflow = StateGraph(DebateState)
 workflow.add_node("supervisor", supervisor_router_node)
@@ -94,12 +94,7 @@ workflow.add_edge(START, "supervisor")
 
 workflow.add_conditional_edges(
     "supervisor",
-    where_to_go,
-    {
-        "technical_track": ["architect", "clean_code", "mathematician", "edge_case"],
-        "academic_track": ["scoping", "rhetoric", "bias"],
-        "end_track": END
-    }
+    where_to_go
 )
 
 all_specialists = ["architect", "clean_code", "mathematician", "edge_case", "scoping", "rhetoric", "bias"]
